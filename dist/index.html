@@ -7,16 +7,40 @@
     <link href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/css/ol.css" rel="stylesheet"/>
   </head>
   <body>
-    <div id="map-container" class="globalP fullSize flexBox" style="background-color: aquamarine;"></div>
+    <div id="back-containter" class="globalP fullSize flexBox" style="background-color: blueviolet;">
+      <div id="main-containter" class="flexBox" style="flex: 1; background-color: white; margin: 10px; position: relative;">
+        <div id="map-container" class="flexBox" style="background-color: aqua; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+        </div>
+        <div id="layer1" style="z-index: 2;">
+          <div>
+            <input type="button" id="test-button" value="ClickMe"/>
+          </div>
+        </div>
+        <div id="overlay-layer"></div>
+      </div>
+    </div>
     <script type="module">
-      import {MyMap, OSMLayer} from './scripts/map.js';
+      /**/
+      import {createMap, OSMLayer} from './scripts/map.js';
+      import {Overlay, LogType} from './scripts/overlay.js';
 
-      var map = new MyMap({
+      /* Overlay creation */
+      var overlay = new Overlay('overlay-layer', {});
+      console.log(overlay);
+      //overlay.log('SKJDHFKLSJDHFKJSHDf');
+
+      document.getElementById('test-button').onclick = ()=>{
+        overlay.log('WTF maaaaan???', LogType.eWarning);
+      };
+
+      /* Map creation */
+      var map = createMap({
         targetElementId: "map-container",
         center: { x: 3370533.758063, y: 8387091.147105},
         zoom: 7,
         layers: [new OSMLayer()],
       });
+      /**/
     </script>
   </body>
 </html>

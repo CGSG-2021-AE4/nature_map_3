@@ -184,4 +184,9 @@ export class MyMap {
 
 }; /* End of 'Map' class */
 
+/* Creates map component function (made for code simularity) */
+export function createMap( props: MapProps ): MyMap {
+  return new MyMap(props);
+} /* End of 'createMap' function */
+
 /* END OF 'map.tsx' FILE */

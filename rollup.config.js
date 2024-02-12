@@ -24,7 +24,7 @@ module.exports = [
     input: "src/components/overlay.tsx",
     output: {
       file: "dist/scripts/overlay.js",
-      format: "cjs",
+      format: "es",
       sourcemap: "inline",
     },
     plugins: [
