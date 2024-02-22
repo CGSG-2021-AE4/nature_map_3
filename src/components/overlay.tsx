@@ -8,14 +8,14 @@
  *               Overlay component source file.
  * PROGRAMMER  : CGSG'2024.
  *               Andrey Egorov.
- * LAST UPDATE : 11.02.2024
+ * LAST UPDATE : 22.02.2024
  *
  * No part of this file may be changed without agreement of
  * Computer Graphics Support Group of 30 Phys-Math Lyceum
  */
 
 import React from "react";
-import { PushButton, ClickButton, renderComponent } from "./support";
+import { PushButton, ClickButton, renderComponent, ButtonNameType } from "./support";
 
 /* Log type enum */
 export enum LogType {
@@ -53,7 +53,8 @@ export enum FormValueType {
 export interface FormValueProps {
   name: string;
   type: FormValueType;
-  ref?: React.RefObject<HTMLInputElement>; // SHIT but for now ok
+  ref?: React.RefObject<any>; // SHIT but for now ok
+  arguments: { [name: string]: any } // Other arguments
 } /* End of 'FormValueProps' function */
 
 /* Form props interface */
@@ -73,7 +74,6 @@ interface FormComponentProps<ValuesObject> {
 
 /* Get form value's input element JSX */
 function getInputElement( valueProps: FormValueProps, defaultValue: PossibleFormValueType ): JSX.Element {
-  console.log('draw');
   switch (valueProps.type)
   {
     case FormValueType.eText:
@@ -83,31 +83,28 @@ function getInputElement( valueProps: FormValueProps, defaultValue: PossibleForm
     case FormValueType.eBool:
       if (defaultValue && typeof defaultValue != "boolean")
         return (<></>);
-      return (<input type="button" ref={valueProps.ref} defaultValue={defaultValue as number}/>); // WTF
+      return (<PushButton ref={valueProps.ref} value={defaultValue as boolean} valueType={(valueProps.arguments != undefined && valueProps.arguments.type != undefined) ? valueProps.arguments.type : ButtonNameType.eYesNo }/>); // WTF
     case FormValueType.eNumber:
       if (defaultValue && typeof defaultValue != "number")
         return (<></>);
       return (<input type="number" ref={valueProps.ref} defaultValue={defaultValue as number}/>);
   }
-  return (<></>);
 } /* End of 'getInputElement' function */
 
 /* Get HTML element value function */
 function getInputElementValue( valueProps: FormValueProps ): PossibleFormValueType {
   if (valueProps && valueProps.ref.current)
   {
-    console.log("sucess set value " + valueProps.name);
     switch (valueProps.type)
     {
     case FormValueType.eText:
-      return valueProps.ref.current.value as string;
+      return String(valueProps.ref.current.value);
     case FormValueType.eBool:
-      return valueProps.ref.current.value as string; // WTF
+      return Boolean(valueProps.ref.current.getValue());
     case FormValueType.eNumber:
-      return valueProps.ref.current.value as string; // WTF
+      return Number(valueProps.ref.current.value);
     }
   }
-
   return undefined;
 } /* End of 'getInputElementValue' function */
 
@@ -133,7 +130,10 @@ function FormComponent<ValuesObject>( props: React.PropsWithRef<FormComponentPro
           return (<div style={{
             display: 'flex',
             flexDirection: 'row',
-            justifyContent: 'space',
+            justifyContent: 'space-between',
+            border: "0.1em solid black",
+            margin: "0.1em",
+            padding: "0.1em",
           }}>
             <p style={{ padding: 0, marginRight: '1em' }}>{props.formProps.valuesProps[optionKey].name}</p>
             {getInputElement(props.formProps.valuesProps[optionKey], props.formProps.inValues[optionKey])}
@@ -165,7 +165,7 @@ interface OverlayState {
 }/* End of 'OverlayState' interface */
 
 /* Overlay component class */
-class OverlayComponent extends React.Component<React.PropsWithRef<OverlayProps>, OverlayState> {
+export class OverlayComponent extends React.Component<React.PropsWithRef<OverlayProps>, OverlayState> {
 
   /* Constructor function */
   constructor( props: React.PropsWithRef<OverlayProps> ) {
@@ -205,8 +205,8 @@ class OverlayComponent extends React.Component<React.PropsWithRef<OverlayProps>,
           Object.keys(outValues).map(( optionKey: string )=>{
             const newValue = getInputElementValue(this.state.formProps.valuesProps[optionKey]);
 
-            if (newValue)
-              outValues[optionKey] = newValue;
+            // if (newValue) ???
+            outValues[optionKey] = newValue;
           });
 
           this.state.formProps.onCloseCallBack(outValues);
@@ -237,11 +237,9 @@ class OverlayComponent extends React.Component<React.PropsWithRef<OverlayProps>,
 
   /* Log function */
   log( msg: LogMsg ): void {
-    console.log(msg.str);
     this.state.logStack.push(msg);
     this.setState({ logStack: this.state.logStack });
     setTimeout(() => { this.shiftLogs(); }, this.props.logLifeTime);
-    console.log(this.state.logStack);
   } /* End of 'log' function */
 
   /* Show form function */
@@ -250,35 +248,5 @@ class OverlayComponent extends React.Component<React.PropsWithRef<OverlayProps>,
   } /* End of 'showForm' function */
 
 } /* End of 'OverlaOverlayComponenty' class */
-
-/* Overlay main class */
-export class Overlay {
-  ref: React.RefObject<OverlayComponent>;
-  
-  /* Constructor function */
-  constructor( targetElementId: string, props: OverlayProps ) {
-    this.ref = React.createRef<OverlayComponent>();
-    
-    const e = React.createElement(OverlayComponent, { ref: this.ref, ...props });
-    renderComponent(targetElementId, e);
-  } /* End of 'constructor' function */
-
-  /* Log string function */
-  log = ( str: string, type: LogType = LogType.eMessage ): void => {
-    if (this.ref.current)
-      this.ref.current.log({ str: str, type: type });
-    else
-      console.log('LOG *' + String(type) + '* : ' + str + '\n');
-  } /* End of 'log' function */
-
-  /* Show form function */
-  showForm<ValuesType>( props: FormProps<ValuesType> ): void { // TODO make it arrow function
-    if (this.ref.current)
-      this.ref.current.showForm(props);
-    else
-      console.log("ERROR: current is null");
-  } /* End of 'showForm' function */
-
-} /* End of 'Overlay' class */
 
 /* END OF 'overlay.tsx' FILE */

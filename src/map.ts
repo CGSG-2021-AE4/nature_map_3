@@ -5,10 +5,10 @@
 
 /* FILE NAME   : map.tsx
  * PURPOSE     : Nature Map 3 project.
- *               Map compoent source file.
+ *               Map source file.
  * PROGRAMMER  : CGSG'2024.
  *               Andrey Egorov.
- * LAST UPDATE : 09.02.2024
+ * LAST UPDATE : 22.02.2024
  *
  * No part of this file may be changed without agreement of
  * Computer Graphics Support Group of 30 Phys-Math Lyceum
@@ -25,8 +25,8 @@ import OL_Map from 'ol/Map.js';
 import OL_View from 'ol/View.js';
 
 /* My includes */
-import Vec2 from '../math/vec2';
-import { QueryParams, queryToStr } from '../query';
+import Vec2 from './math/vec2';
+import { QueryParams, queryToStr } from './query';
 
 /* Layer base main class */
 class LayerBase {
@@ -184,9 +184,4 @@ export class MyMap {
 
 }; /* End of 'Map' class */
 
-/* Creates map component function (made for code simularity) */
-export function createMap( props: MapProps ): MyMap {
-  return new MyMap(props);
-} /* End of 'createMap' function */
-
-/* END OF 'map.tsx' FILE */
+/* END OF 'map.ts' FILE */

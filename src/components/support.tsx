@@ -8,7 +8,7 @@
  *               Support functionality source file.
  * PROGRAMMER  : CGSG'2024.
  *               Andrey Egorov.
- * LAST UPDATE : 11.02.2024
+ * LAST UPDATE : 22.02.2024
  *
  * No part of this file may be changed without agreement of
  * Computer Graphics Support Group of 30 Phys-Math Lyceum
@@ -24,11 +24,12 @@ export enum ButtonNameType {
   eEnabledDisabled = 'EnabledDisabled',
   eActivePassive = 'ActivePassive',
   eOnOff = 'OnOff',
+  eYesNo = 'YesNo',
 } /* End of 'ButtonNameType' enum */
 
 /* Push button React props interface */
 export interface PushButtonProps {
-  name: string;
+  name?: string;
   value?: boolean;
   valueType?: ButtonNameType;
   onChange?: ( newValue: boolean)=>void;
@@ -40,10 +41,10 @@ interface PushButtonState {
 }/* End of 'PushButtonState' interface */
 
 /* Push button main component class */
-export class PushButton extends React.Component<PushButtonProps, PushButtonState> {
+export class PushButton extends React.Component<React.PropsWithRef<PushButtonProps>, PushButtonState> {
 
   /* Constructor function */
-  constructor( props: PushButtonProps ) {
+  constructor( props: React.PropsWithRef<PushButtonProps> ) {
     super(props);
 
     this.state = {
@@ -84,6 +85,11 @@ export class PushButton extends React.Component<PushButtonProps, PushButtonState
           return 'On';
         else
           return 'Off';
+      case ButtonNameType.eYesNo:
+        if (this.state.value)
+          return 'Yes';
+        else
+          return 'No';
     }
   } /* End of 'getButtonName' function */
 

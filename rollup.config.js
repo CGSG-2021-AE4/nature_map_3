@@ -7,7 +7,7 @@ const replace = require("@rollup/plugin-replace");
 
 module.exports = [
   {
-    input: "src/components/map.ts",
+    input: "src/map.ts",
     output: {
       file: "dist/scripts/map.js",
       format: "es",
@@ -21,7 +21,7 @@ module.exports = [
     ],
   },
   {
-    input: "src/components/overlay.tsx",
+    input: "src/overlay.ts",
     output: {
       file: "dist/scripts/overlay.js",
       format: "es",
