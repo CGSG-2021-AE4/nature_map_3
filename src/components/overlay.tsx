@@ -15,7 +15,7 @@
  */
 
 import React from "react";
-import { PushButton, ClickButton, renderComponent, ButtonNameType } from "./support";
+import { ValueProps, getInputElement, PossibleFormValueType, getInputElementValue } from "./support";
 
 /* Log type enum */
 export enum LogType {
@@ -39,30 +39,12 @@ export interface LogMsg {
   str: string;
 } /* End of 'LogMsg' interface */
 
-/* Possible value type */
-type PossibleFormValueType = number | string | boolean;
-
-/* From value type */
-export enum FormValueType {
-  eText = 'eText',     // Text value
-  eBool = 'eBool',     // Boolean value
-  eNumber = 'eNumber', // Number value
-} /* End of 'FormValueType' enum */
-
-/* From value interface */
-export interface FormValueProps {
-  name: string;
-  type: FormValueType;
-  ref?: React.RefObject<any>; // SHIT but for now ok
-  arguments: { [name: string]: any } // Other arguments
-} /* End of 'FormValueProps' function */
-
 /* Form props interface */
 export interface FormProps<ValuesObject> {
   name: string;
   //return_type;
-  valuesProps: { [name: string]: FormValueProps };
-  inValues: { [name: string]: PossibleFormValueType };
+  valuesProps: { [name: string]: ValueProps };
+  inValues: { [name: string]: any };
   onCloseCallBack: ( newValues: ValuesObject ) => void;
 } /* End of 'FormProps' function */
 
@@ -72,41 +54,6 @@ interface FormComponentProps<ValuesObject> {
   onCloseCallBack: ( isApplied: boolean ) => void;
 } /* End of 'FormComponentProps' function */
 
-/* Get form value's input element JSX */
-function getInputElement( valueProps: FormValueProps, defaultValue: PossibleFormValueType ): JSX.Element {
-  switch (valueProps.type)
-  {
-    case FormValueType.eText:
-      if (defaultValue && typeof defaultValue != "string")
-        return (<></>);
-      return (<input type="text" ref={valueProps.ref} defaultValue={defaultValue as string}/>);
-    case FormValueType.eBool:
-      if (defaultValue && typeof defaultValue != "boolean")
-        return (<></>);
-      return (<PushButton ref={valueProps.ref} value={defaultValue as boolean} valueType={(valueProps.arguments != undefined && valueProps.arguments.type != undefined) ? valueProps.arguments.type : ButtonNameType.eYesNo }/>); // WTF
-    case FormValueType.eNumber:
-      if (defaultValue && typeof defaultValue != "number")
-        return (<></>);
-      return (<input type="number" ref={valueProps.ref} defaultValue={defaultValue as number}/>);
-  }
-} /* End of 'getInputElement' function */
-
-/* Get HTML element value function */
-function getInputElementValue( valueProps: FormValueProps ): PossibleFormValueType {
-  if (valueProps && valueProps.ref.current)
-  {
-    switch (valueProps.type)
-    {
-    case FormValueType.eText:
-      return String(valueProps.ref.current.value);
-    case FormValueType.eBool:
-      return Boolean(valueProps.ref.current.getValue());
-    case FormValueType.eNumber:
-      return Number(valueProps.ref.current.value);
-    }
-  }
-  return undefined;
-} /* End of 'getInputElementValue' function */
 
 function FormComponent<ValuesObject>( props: React.PropsWithRef<FormComponentProps<ValuesObject>> ) {
   const valuesRefs: Array<React.RefObject<HTMLInputElement>> = [];
@@ -216,9 +163,11 @@ export class OverlayComponent extends React.Component<React.PropsWithRef<Overlay
       <div style={{
         zIndex: 900,
         position: 'absolute',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         bottom: 0,
         left: 0,
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         {this.state.logStack.map((e)=>{
         return (<div style={logStyleTable[e.type]}>

@@ -135,6 +135,14 @@ export interface MapProps {
   layers?: Array<LayerBase>;
 }; /* End of 'MapProps' interface */
 
+/* Map functionality interface */
+export interface MapInterface {
+  setView( center: Vec2, zoom: number ): void;
+  onQueryUpdate( newQuery: QueryParams ): void;
+  addLayer( newLayer: LayerBase ): void;
+  removeLayer( newLayer: LayerBase ): void;
+}; /* End of 'MapInterface' interface */
+
 /* Main map class */
 export class MyMap {
   map: OL_Map;
@@ -152,7 +160,7 @@ export class MyMap {
   } /* End of 'constructor' function */
 
   /* Set view pos function */
-  setView( center: Vec2, zoom: number ): void {
+  setView = ( center: Vec2, zoom: number ): void => {
     console.log(center);
     console.log(zoom);
     
@@ -163,12 +171,12 @@ export class MyMap {
   } /* End of 'setView' function */
 
   /* On query update function */
-  onQueryUpdate( newQuery: QueryParams ): void {
+  onQueryUpdate = ( newQuery: QueryParams ): void => {
     // TODO
   } /* End of 'onQueryUpdate' function */
 
   /* Add layer function */
-  addLayer( newLayer: LayerBase ): void {
+  addLayer = ( newLayer: LayerBase ): void => {
     if (newLayer.curMap)
       newLayer.release();
     console.log(newLayer);
@@ -177,10 +185,15 @@ export class MyMap {
   } /* End of 'addLayer' function */
 
   /* Remove layer function */
-  removeLayer( newLayer: LayerBase ): void {
+  removeLayer = ( newLayer: LayerBase ): void => {
     this.map.removeLayer(newLayer.layer);
     newLayer.curMap = undefined;
   } /* End of 'removeLayer' function */
+
+  /* Get interface function */
+  getInterface(): MapInterface {
+    return this;
+  } /* End of 'getInterface' function */
 
 }; /* End of 'Map' class */
 

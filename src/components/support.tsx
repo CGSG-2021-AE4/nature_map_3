@@ -129,4 +129,146 @@ export function renderComponent( targetElementId: string, dom: any ) {
   root.render(dom);
 } /* End of 'renderComponent' function */
 
+/* Option set React props interface */
+export interface OptionSetProps {
+  optionType: ValueType;
+  onLoad?: ( os: OptionSet )=> void;
+} /* End of 'OptionSetProps' interface */
+
+/**** Input elements functionality ****/
+
+/* Possible value type */
+export type PossibleFormValueType = number | string | boolean;
+
+/* Value type */
+export enum ValueType {
+  eString = 'eString', // String value
+  eBool = 'eBool',     // Boolean value
+  eNumber = 'eNumber', // Number value
+} /* End of 'ValueType' enum */
+
+/* Value interface */
+export interface ValueProps {
+  name?: string;
+  type: ValueType;
+  ref?: React.RefObject<any>; // SHIT but for now ok
+  arguments?: { [name: string]: any } // Other arguments
+                                      // BUTTON:
+                                      //   type?: ButtonNameType
+} /* End of 'ValueProps' function */
+
+/* Get form value's input element JSX */
+export function getInputElement( valueProps: ValueProps, defaultValue?: PossibleFormValueType ): JSX.Element {
+  // Default value switch
+  let defValue;
+  switch (valueProps.type)
+  {
+    case ValueType.eString:
+      defValue = (defaultValue && typeof defaultValue != "string") ? "" : defaultValue;
+      break;
+    case ValueType.eBool:
+      defValue = (defaultValue && typeof defaultValue != "boolean") ? false : defaultValue;
+      break;
+    case ValueType.eNumber:
+      defValue =  (defaultValue && typeof defaultValue != "number") ? 0 : defaultValue;
+      break;
+  }
+  
+  switch (valueProps.type)
+  {
+    case ValueType.eString:
+      return (<input type="text" ref={valueProps.ref} defaultValue={defValue}/>);
+    case ValueType.eBool:
+      return (<PushButton ref={valueProps.ref} value={defValue} valueType={(valueProps.arguments != undefined && valueProps.arguments.type != undefined) ? valueProps.arguments.type : ButtonNameType.eYesNo }/>); // WTF
+    case ValueType.eNumber:
+      return (<input type="number" ref={valueProps.ref} defaultValue={defValue}/>);
+  }
+} /* End of 'getInputElement' function */
+
+/* Get HTML element value function */
+export function getInputElementValue<ValueT>( valueProps: ValueProps ): ValueT {
+  if (valueProps && valueProps.ref.current)
+  {
+    switch (valueProps.type)
+    {
+    case ValueType.eString:
+      return String(valueProps.ref.current.value) as ValueT;
+    case ValueType.eBool:
+      return Boolean(valueProps.ref.current.getValue()) as ValueT;
+    case ValueType.eNumber:
+      return Number(valueProps.ref.current.value) as ValueT;
+    }
+  }
+  return undefined;
+} /* End of 'getInputElementValue' function */
+
+/* Option state interface */
+interface OptionState {
+  nameElement: { props: ValueProps; defValue?: any };
+  valueElement: { props: ValueProps; defValue?: any };
+} /* End of 'OptionState' interface */
+
+/* Option set React state interface */
+interface OptionSetState {
+  options: Array<OptionState>;
+}/* End of 'OptionSetState' interface */
+
+/* Link search main component class */
+export class OptionSet extends React.Component<React.PropsWithRef<OptionSetProps>, OptionSetState> {
+
+  /* Constructor function */
+  constructor( props: React.PropsWithRef<OptionSetProps> ) {
+    super(props);
+
+    this.state = {
+      options: [],
+    };
+
+    if (this.props.onLoad)
+      this.props.onLoad(this);
+  } /* End of 'constructor' function */
+
+  /* Values getter function */
+  getValues<ValueT>(): { [name: string]: ValueT } {
+    var outValues: { [name: string]: ValueT } = {};
+
+    this.state.options.map(( option: OptionState ) => {
+      outValues[getInputElementValue<string>(option.nameElement.props)] = getInputElementValue<ValueT>(option.valueElement.props);
+    });
+    return outValues;
+  } /* End of 'getValues' function */
+
+  /* Add option function (mostly for testing ) */
+  AddOption( name: string, value: any ) {
+    this.state.options.push({
+      nameElement: { props: { type: ValueType.eString, ref: React.createRef() }, defValue: name },
+      valueElement: { props: { type: this.props.optionType, ref: React.createRef() }, defValue: value }
+    });
+  } /* End of 'AddOption' function */
+
+  /* React render function */
+  render() {
+    return (
+      <div>
+        {
+          this.state.options.map(( option: OptionState )=>{
+            return (
+              <div>
+                 {getInputElement(option.nameElement.props, option.nameElement.defValue)}
+                 {getInputElement(option.valueElement.props, option.valueElement.defValue)}
+              </div>);
+          })
+        }
+        <ClickButton name="Add option" onClick={()=>{
+          this.state.options.push({
+            nameElement: { props: { type: ValueType.eString, ref: React.createRef() } },
+            valueElement: { props: { type: this.props.optionType, ref: React.createRef() } }
+          });
+          this.setState({ options: this.state.options });
+        }}/>
+      </div>
+    );
+  } /* End of 'render' function */
+}; /* End of 'OptionSet' class */
+
 /* END OF 'support.tsx' FILE */

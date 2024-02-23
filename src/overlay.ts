@@ -15,15 +15,15 @@
  */
 
 import React from "react";
-import { OverlayComponent, OverlayProps, LogType, FormProps, FormValueType } from "./components/overlay";
-import { renderComponent, ButtonNameType } from "./components/support";
+import { OverlayComponent, OverlayProps, LogType, FormProps } from "./components/overlay";
+import { renderComponent, ButtonNameType, ValueType } from "./components/support";
 
 
-export { OverlayProps, LogType, FormProps, FormValueType, ButtonNameType };
+export { OverlayProps, LogType, FormProps, ValueType as FormValueType, ButtonNameType };
 
 /* Overlay interface that other classes would get */
 export interface OverlayInterface {
-  log: ( str: string, type: LogType )=>void;
+  log: ( str: string, type?: LogType )=>void;
   showForm: <ValuesType>( props: FormProps<ValuesType> )=> void;
 } /* End of 'OverlayInterface'
 
@@ -40,11 +40,11 @@ export class Overlay {
   } /* End of 'constructor' function */
 
   /* Log string function */
-  log = ( str: string, type: LogType = LogType.eMessage ): void => {
+  log = ( str: string, type?: LogType ): void => {
     if (this.ref.current)
-      this.ref.current.log({ str: str, type: type });
+      this.ref.current.log({ str: str, type: type ? type : LogType.eMessage });
     else
-      console.log('LOG *' + String(type) + '* : ' + str + '\n');
+      console.log('LOG *' + String(type ? type : LogType.eMessage) + '* : ' + str + '\n');
   } /* End of 'log' function */
 
   /* Show form function */
@@ -64,3 +64,5 @@ export class Overlay {
   } /* End of 'getInterface' function */
 
 } /* End of 'Overlay' class */
+
+/* END OF 'overlay.ts' FILE */

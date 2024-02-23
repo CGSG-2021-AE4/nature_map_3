@@ -43,4 +43,27 @@ module.exports = [
       typescript({ tsconfig: './tsconfig.json' }),
     ],
   },
+  {
+    input: "src/test.ts",
+    output: {
+      file: "dist/scripts/test.js",
+      format: "es",
+      sourcemap: "inline",
+    },
+    plugins: [
+      replace({
+        preventAssignment: true,
+		    'process.env.NODE_ENV': JSON.stringify( 'production' )
+      }),
+      external(),
+      resolve(),
+      babel({ 
+        exclude: 'node_modules/**',
+        babelHelpers: 'bundled',
+        presets: ["react", "env", "stage-0"]
+      }),
+      commonjs(),
+      typescript({ tsconfig: './tsconfig.json' }),
+    ],
+  },
 ];

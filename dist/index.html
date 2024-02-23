@@ -13,58 +13,21 @@
         </div>
         <div id="layer1" style="z-index: 2;">
           <div>
-            <input type="button" id="test-button" value="ClickMe"/>
-            <input type="button" id="show-form-button" value="Show form"/>
+            <input type="button" id="test-button" value="Show test logs"/>
+            <input type="button" id="show-form-button" value="Show test form"/>
           </div>
+          <div id="link-search" style="position: absolute; right: 0; top: 0;"></div>
         </div>
         <div id="overlay-layer"></div>
       </div>
     </div>
     <script type="module">
-      /**/
-      import {MyMap, OSMLayer} from './scripts/map.js';
-      import {Overlay, LogType, FormValueType} from './scripts/overlay.js';
+      import { init } from "./scripts/test.js";
+      import {MyMap, OSMLayer} from "./scripts/map.js";
+      import { Overlay } from "./scripts/overlay.js";
 
-      /* Overlay creation */
       var overlay = new Overlay('overlay-layer', {});
-      console.log(overlay);
-      //overlay.log('SKJDHFKLSJDHFKJSHDf');
-
-      document.getElementById('test-button').onclick = ()=>{
-        overlay.log('WTF maaaaan???', LogType.eWarning);
-      };
-
-      var values = {
-        str: 'asdfklsdfa',
-        number: 1,
-        bool: false,
-      };
-      document.getElementById('show-form-button').onclick = ()=>{
-        overlay.showForm({
-          name: 'test',
-          valuesProps: {
-            str: {
-              name: 'str',
-              type: FormValueType.eText,
-            },
-            number: {
-              name: 'number',
-              type: FormValueType.eNumber,
-            },
-            bool: {
-              name: 'bool',
-              type: FormValueType.eBool,
-            },
-          },
-          inValues: values,
-          onCloseCallBack: ( newValues )=>{
-            console.log('NEW VALUES:');
-            console.log(newValues);
-            values = newValues;
-          }
-        });
-      };
-
+      
       /* Map creation */
       var map = new MyMap({
         targetElementId: "map-container",
@@ -73,6 +36,8 @@
         layers: [new OSMLayer()],
       });
       /**/
+
+      init(map.getInterface(), overlay.getInterface());
     </script>
   </body>
 </html>
