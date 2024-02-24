@@ -3,8 +3,6 @@
  *    Computer Graphics Support Group of 30 Phys-Math Lyceum
  ***************************************************************/
 
-import React from "react";
-
 /* FILE NAME   : link_search.tsx
  * PURPOSE     : Nature Map 3 project.
  *               Search by link source file.
@@ -16,10 +14,12 @@ import React from "react";
  * Computer Graphics Support Group of 30 Phys-Math Lyceum
  */
 
+import React from "react";
 import { ClickButton, OptionSet, ValueType, renderComponent } from "./support";
 import { MapInterface } from "../map";
 import { LogType, OverlayInterface } from "../overlay";
 import { queryToURL } from "../query";
+import { GbifSearch } from "../gbif";
 
 /* Link search React props interface */
 export interface LinkSearchProps {
@@ -40,6 +40,7 @@ interface LinkSearchState {
 /* Link search main component class */
 export class LinkSearch extends React.Component<LinkSearchProps, LinkSearchState> {
   searchPrefs: SearchPrefs;
+  gbifSearch: GbifSearch;
 
   /* Constructor function */
   constructor( props: LinkSearchProps ) {
@@ -49,6 +50,7 @@ export class LinkSearch extends React.Component<LinkSearchProps, LinkSearchState
       optionSetRef: React.createRef(),
     };
     this.searchPrefs = { url: "https://api.gbif.org/v1/species/search" };
+    this.gbifSearch = new GbifSearch({ overlay: props.overlay });
   } /* End of 'constructor' function */
 
   /* React render function */
@@ -78,14 +80,21 @@ export class LinkSearch extends React.Component<LinkSearchProps, LinkSearchState
           os.AddOption("limit", "80");
         }}/>
         <ClickButton name="Show on map"/>
-        <ClickButton name="Show link" onClick={()=>{
+        <ClickButton name="Test search" onClick={ async ()=> {
+          console.log( await this.gbifSearch.search( "species", "name", { required: { usageKey: "5231190" }, query: { } } ));
+          //this.gbifSearch.search( "species", "name", {required: {}});
+        }}/>
+        <ClickButton name="Show link" onClick={ async ()=>{
           if (!this.state.optionSetRef.current)
             return;
           var values: { [name: string]: string } = this.state.optionSetRef.current.getValues<string>();
 
           console.log(values);
-          this.props.overlay.log(`URL: ${queryToURL(this.searchPrefs.url, values)}`, LogType.eMessage);
+          let url = queryToURL(this.searchPrefs.url, values);
+          this.props.overlay.log(`URL: ${url}`, LogType.eMessage);
 
+          let result = await fetch(url);
+          console.log(await result.json());
         }}/>
       </div>
     );
