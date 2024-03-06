@@ -20,6 +20,7 @@ import { MapInterface } from "../map";
 import { LogType, OverlayInterface } from "../overlay";
 import { queryToURL } from "../query";
 import { GbifSearch } from "../gbif";
+import { GetSearchResponse } from "../gbif_params";
 
 /* Link search React props interface */
 export interface LinkSearchProps {
@@ -81,7 +82,9 @@ export class LinkSearch extends React.Component<LinkSearchProps, LinkSearchState
         }}/>
         <ClickButton name="Show on map"/>
         <ClickButton name="Test search" onClick={ async ()=> {
-          console.log( await this.gbifSearch.search( "species", "name", { required: { usageKey: "5231190" }, query: { } } ));
+          const data = await this.gbifSearch.search( "species", "name", { required: { usageKey: 5231190 }, query: { } } );
+
+          console.log(data);
           //this.gbifSearch.search( "species", "name", {required: {}});
         }}/>
         <ClickButton name="Show link" onClick={ async ()=>{

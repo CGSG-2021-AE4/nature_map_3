@@ -14,57 +14,208 @@
  * Computer Graphics Support Group of 30 Phys-Math Lyceum
  */
 
-/* Taxon rank enum */
-export enum TaxonRank {
-  eKindom = "KINDOM",
-} /* End of 'TaxonRank' enum */
-
-/* All possible search parameters type */
-export type SearchParamsBase = {
-  species: {
-    name: {
-      required: {
-        usageKey: string;
-      };
-      query: {
-      }
-    };
-  };
-}; /* End of 'SearchParamsBase' type */
-
-/* All possible search results type */
-export type SearchResultsBase = {
-  species: {
-    name: {
-    };
-  };
-}; /* End of 'SearchResultsBase' type */
-
-/* Seach params support types */
 
 // Common properties' types getter
 export type PropType<Obj, Key extends keyof Obj> = Obj[Key];
+// Search base data type
+type SearchBaseData<Required, Query, Response> = {
+  required: Required;
+  query: Query;
+  response: Response;
+};
+
+// Taxon rank contraint
+export type TaxonRank =
+  'KINGDOM' |
+  'PHYLUM'  |
+  'ORDER'   |
+  'FAMILY'  |
+  'GENUS'   |
+  'SPECIES' |
+  'CLASS'
+; // End of 'TaxonRank' constraint
+
+// Paging params type
+export type PagingParams = {
+  limit: number;
+  offset: number;
+}; // End of 'PagingParams' type
+
+// Paging response type
+export type PagingResponse<Content> = {
+  offset: number;
+  limit: number;
+  endOfRecords: boolean;
+  count: number;
+  results: [Content];
+}; // End of 'PagingResponse' type
+
+// Parsed name type
+export type ParsedName = {
+  key: number;
+  scientificName: string;
+  authorship: string;
+  year: string;
+  // Some unnecessary fields
+  rankMarker: TaxonRank;
+}; // End of 'ParsedName' type
+
+// Name usage metrics type
+export type NameUsageMetrics = {
+  key: number;
+  numPhylum: number;
+  numClass: number;
+  numOrder: number;
+  numFamily: number;
+  numGenus: number;
+  numSubGenus: number;
+  numSpecies: number;
+  numChildren: number;
+  numDescendants: number; // All
+  numSynonyms: number;
+}; // End of 'NameUsageMetrics' type
+
+// Name usage type
+export type NameUsage = {
+  key: number;
+  nubKey: number;
+  nameKey: number;
+  taxonId: string;
+  sourceTaxonId: string;
+
+  // Taxonomy
+  kingdom: string;
+  phylum: string;
+  order: string;
+  family: string;
+  genus: string;
+  subgenus: string;
+  species: string;
+  class: string; // ??? where key for class
+  // Keys for them
+  kingdomKey: number;
+  phylumKey: number;
+  orderKey: number;
+  familyKey: number;
+  genusKey: number;
+  subgenusKey: number;
+  speciesKey: number;
+
+  // Dataset
+  datasetKey: string;
+
+  // Parent
+  parent: string;
+  parentKey: number;
+
+  // Some personal info
+  scientificName: string;
+  vernacularName: string; // Common name
+  authorship: string;
+  rank: TaxonRank;
+}; // End of 'NameUsage' type
+
+// Name usage suggest result type
+export type NameUsageSuggestResult = {
+  key: number;
+  nubKey: number;
+  nameKey: number;
+  
+  // Taxonomy
+  kingdom: string;
+  phylum: string;
+  order: string;
+  family: string;
+  genus: string;
+  subgenus: string;
+  species: string;
+  class: string; // ??? where key for class
+  // Keys for them
+  kingdomKey: number;
+  phylumKey: number;
+  orderKey: number;
+  familyKey: number;
+  genusKey: number;
+  subgenusKey: number;
+  speciesKey: number;
+  classKey: number;
+
+  // Dataset
+  datasetKey: string;
+
+  // Parent
+  parent: string;
+  parentKey: number;
+
+  // Some personal info
+  scientificName: string;
+  canonicalName: string; // Common name
+  rank: TaxonRank;
+}; // End of 'NameUsageSuggestResult' type
+
+/* All possible search parameters type */
+export type SearchBase = {
+  species: {
+    default: SearchBaseData<
+      { // required
+        usageKey: number;
+      },
+      { // query
+      },
+      ParsedName // result
+    >;
+    name: SearchBaseData<
+      { usageKey: number; },
+      {},
+      ParsedName
+    >;
+    metrics: SearchBaseData<
+      { usageKey: number; },
+      {},
+      ParsedName
+    >;
+    children: SearchBaseData<
+      { usageKey: number; },
+      PagingParams,
+      PagingResponse<NameUsage>
+    >;
+    suggest: SearchBaseData<
+      {},
+      {
+        // TODO
+      },
+      [NameUsageSuggestResult]
+    >;
+  };
+}; /* End of 'SearchBase' type */
+
+/* Seach params support types */
 
 // Search props type
 export type SearchProps = {
-  required: { [name: string]: any };
-  query: { [name: string]: any };
+  required: any;
+  query: any;
 };
-// Search result type
-export type SearchResultType = {
+// Search response type
+export type SearchResponse = {
   count?: number;
   results: any;
-}; /* End of 'SearchResult' type */
+}; /* End of 'SearchResponse' type */
 
-// Some additional types
-type CheckPropsType<T> = T extends SearchProps ? T : never;
-type CheckResultType<T> = T extends SearchResultType ? T : never;
-export type SearchApi = keyof SearchParamsBase;
-export type SearchType<Api extends SearchApi> = keyof PropType<SearchParamsBase, Api>;
+// Some additional keys
+export type SearchApiKey = keyof SearchBase;
+export type SearchTypeKey<Api extends SearchApiKey> = keyof PropType<SearchBase, Api>;
 
-// Main search params type getter
-export type SeachParams<Api extends SearchApi, Type extends SearchType<Api>> = CheckPropsType<PropType<PropType<SearchParamsBase, Api>, Type>>;
-// Main search result type getter
-//export type SearchResult<Api extends SearchApi, Type extends SearchType<Api>> = CheckResultType<PropType<PropType<SearchResultsBase, Api>, Type>>;
+// Get exact data options
+type GetPropsData<SearchData> = SearchData extends SearchBaseData<any, any, any> ? {
+  required: SearchData["required"];
+  query: SearchData["query"];
+} : never;
+type GetResponseData<SearchData> = SearchData extends SearchBaseData<any, any, any> ? SearchData["response"] : never;
+
+// Main search types getters 
+export type GetSearchProps<Api extends SearchApiKey, Type extends SearchTypeKey<Api>> = GetPropsData<PropType<PropType<SearchBase, Api>, Type>>;
+// Main search response type getter
+export type GetSearchResponse<Api extends SearchApiKey, Type extends SearchTypeKey<Api>> = GetResponseData<PropType<PropType<SearchBase, Api>, Type>>;
 
 /* END OF 'gbif_params.ts' FILE */

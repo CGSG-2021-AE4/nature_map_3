@@ -127,8 +127,8 @@ export class OverlayComponent extends React.Component<React.PropsWithRef<Overlay
 
   /* React render function */
   render() {
-    return (<>
-      {this.state.formProps && <div style={{
+    return (<> 
+      {this.state.formProps && <div style={{ // Render form
         zIndex: 100,
         position: 'absolute',
         left: 0,
@@ -160,7 +160,7 @@ export class OverlayComponent extends React.Component<React.PropsWithRef<Overlay
           this.setState({ formProps: undefined });
         }}/>
       </div>}
-      <div style={{
+      <div style={{ // Render logs
         zIndex: 900,
         position: 'absolute',
         alignItems: 'flex-start',
