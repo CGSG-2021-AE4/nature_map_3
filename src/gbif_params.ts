@@ -16,12 +16,16 @@
 
 
 // Common properties' types getter
+
 export type PropType<Obj, Key extends keyof Obj> = Obj[Key];
 // Search base data type
 type SearchBaseData<Required, Query, Response> = {
   required: Required;
   query: Query;
   response: Response;
+};
+type Partial<T> = {
+  [P in keyof T]?: T[P];
 };
 
 // Taxon rank contraint
@@ -35,20 +39,40 @@ export type TaxonRank =
   'CLASS'
 ; // End of 'TaxonRank' constraint
 
-// Paging params type
-export type PagingParams = {
+export type Habitat = 
+  'MARINE' |
+  'FRESHWATER' |
+  'TERRESTRIAL'
+; // End of 'Habitat' constraint
+
+/********
+ * The folowing types are parameters and responses of requests
+ * I didn't better solution for getting keys except making a default const variable (ts-transform-keys does not work with React!!!!?)
+ *   so every type has its const variable that contains default values.
+ ********/
+
+// Paging parameters type
+export type Page = {
   limit: number;
   offset: number;
-}; // End of 'PagingParams' type
+}; // End of 'Page' type
+const pageDefault: Page = {
+  limit: 100,
+  offset: 0,
+}; // End of 'pageDefault' object
 
 // Paging response type
 export type PagingResponse<Content> = {
-  offset: number;
-  limit: number;
   endOfRecords: boolean;
   count: number;
-  results: [Content];
-}; // End of 'PagingResponse' type
+  results: Array<Content>;
+} & Page; // End of 'PagingResponse' type
+const pagingResponseDefault: PagingResponse<any> = {
+  endOfRecords: true,
+  count: 0,
+  results: [],
+  ...pageDefault,
+};  // End of 'pagingResponseDefault' object
 
 // Parsed name type
 export type ParsedName = {
@@ -56,9 +80,15 @@ export type ParsedName = {
   scientificName: string;
   authorship: string;
   year: string;
-  // Some unnecessary fields
   rankMarker: TaxonRank;
 }; // End of 'ParsedName' type
+const parsedNameDefault: ParsedName = {
+  key: 0,
+  scientificName: "",
+  authorship: "",
+  year: "",
+  rankMarker: "KINGDOM",
+};
 
 // Name usage metrics type
 export type NameUsageMetrics = {
@@ -74,6 +104,19 @@ export type NameUsageMetrics = {
   numDescendants: number; // All
   numSynonyms: number;
 }; // End of 'NameUsageMetrics' type
+const nameUsageMetricsDefault: NameUsageMetrics = {
+  key: 0,
+  numPhylum: 0,
+  numClass: 0,
+  numOrder: 0,
+  numFamily: 0,
+  numGenus: 0,
+  numSubGenus: 0,
+  numSpecies: 0,
+  numChildren: 0,
+  numDescendants: 0,
+  numSynonyms: 0,
+};
 
 // Name usage type
 export type NameUsage = {
@@ -114,6 +157,35 @@ export type NameUsage = {
   authorship: string;
   rank: TaxonRank;
 }; // End of 'NameUsage' type
+const nameUsageDefault: NameUsage = {
+  key: 0,
+  nubKey: 0,
+  nameKey: 0,
+  taxonId: "",
+  sourceTaxonId: "",
+  kingdom: "",
+  phylum: "",
+  order: "",
+  family: "",
+  genus: "",
+  subgenus: "",
+  species: "",
+  class: "",
+  kingdomKey: 0,
+  phylumKey: 0,
+  orderKey: 0,
+  familyKey: 0,
+  genusKey: 0,
+  subgenusKey: 0,
+  speciesKey: 0,
+  datasetKey: "",
+  parent: "",
+  parentKey: 0,
+  scientificName: "",
+  vernacularName: "",
+  authorship: "",
+  rank: "KINGDOM",
+};
 
 // Name usage suggest result type
 export type NameUsageSuggestResult = {
@@ -152,9 +224,50 @@ export type NameUsageSuggestResult = {
   canonicalName: string; // Common name
   rank: TaxonRank;
 }; // End of 'NameUsageSuggestResult' type
+const nameUsageSuggestResultDefault: NameUsageSuggestResult = {
+  key: 0,
+  nubKey: 0,
+  nameKey: 0,
+  kingdom: "",
+  phylum: "",
+  order: "",
+  family: "",
+  genus: "",
+  subgenus: "",
+  species: "",
+  class: "",
+  kingdomKey: 0,
+  phylumKey: 0,
+  orderKey: 0,
+  familyKey: 0,
+  genusKey: 0,
+  subgenusKey: 0,
+  speciesKey: 0,
+  classKey: 0,
+  datasetKey: "",
+  parent: "",
+  parentKey: 0,
+  scientificName: "",
+  canonicalName: "",
+  rank: "KINGDOM",
+};
 
-/* All possible search parameters type */
-export type SearchBase = {
+// Taxon description parameters (for requests like suggest)
+export type TaxonDescription = {
+  datasetKey: string;
+  rank: TaxonRank;
+  higherTaxonKey: number;
+  habitat: Habitat;
+}; // End of 'TaxonDescription' type
+const taxonDescriptionDefault: TaxonDescription = {
+  datasetKey: "",
+  rank: "KINGDOM",
+  higherTaxonKey: 0,
+  habitat: "MARINE",
+};
+
+/* All possible reuests */
+export type RequestBase = {
   species: {
     default: SearchBaseData<
       { // required
@@ -172,50 +285,79 @@ export type SearchBase = {
     metrics: SearchBaseData<
       { usageKey: number; },
       {},
-      ParsedName
+      NameUsageMetrics
     >;
     children: SearchBaseData<
       { usageKey: number; },
-      PagingParams,
+      Page,
       PagingResponse<NameUsage>
     >;
     suggest: SearchBaseData<
       {},
-      {
-        // TODO
-      },
-      [NameUsageSuggestResult]
+      { q: string; } & TaxonDescription,
+      Array<NameUsageSuggestResult>
     >;
   };
-}; /* End of 'SearchBase' type */
+}; /* End of 'RequestBase' type */
+
+/* All possible reuests */
+export const requestBaseDefault: RequestBase = {
+  species: {
+    default: {
+      required: { usageKey: 0 },
+      query: {},
+      response: parsedNameDefault,
+    },
+    name: {
+      required: { usageKey: 0 },
+      query: {},
+      response: parsedNameDefault,
+    },
+    metrics: {
+      required: { usageKey: 0 },
+      query: {},
+      response: nameUsageMetricsDefault,
+    },
+    children: {
+      required: { usageKey: 0, },
+      query: pageDefault,
+      response: pagingResponseDefault,
+    },
+    suggest: {
+      required: {},
+      query: {...taxonDescriptionDefault, q: "" },
+      response: [],
+    },
+  },
+}; /* End of 'requestBaseDefault' type */
 
 /* Seach params support types */
 
 // Search props type
-export type SearchProps = {
+export type ReqProps = {
   required: any;
   query: any;
-};
+};// End of 'ReqProps' type
 // Search response type
-export type SearchResponse = {
+export type ReqResponse = {
   count?: number;
   results: any;
-}; /* End of 'SearchResponse' type */
+}; // End of 'ReqResponse' type
 
 // Some additional keys
-export type SearchApiKey = keyof SearchBase;
-export type SearchTypeKey<Api extends SearchApiKey> = keyof PropType<SearchBase, Api>;
+export type ReqApiKey = keyof RequestBase;
+export type ReqTypeKey<Api extends ReqApiKey> = keyof PropType<RequestBase, Api>;
 
 // Get exact data options
-type GetPropsData<SearchData> = SearchData extends SearchBaseData<any, any, any> ? {
-  required: SearchData["required"];
-  query: SearchData["query"];
+type GetPropsData<ReqData> = ReqData extends SearchBaseData<any, any, any> ? {
+  required: ReqData["required"];
+  query: ReqData["query"];
 } : never;
-type GetResponseData<SearchData> = SearchData extends SearchBaseData<any, any, any> ? SearchData["response"] : never;
+type GetResponseData<ReqData> = ReqData extends SearchBaseData<any, any, any> ? ReqData["response"] : never;
 
-// Main search types getters 
-export type GetSearchProps<Api extends SearchApiKey, Type extends SearchTypeKey<Api>> = GetPropsData<PropType<PropType<SearchBase, Api>, Type>>;
+// Main reqest types getters 
+export type GetReqProps<Api extends ReqApiKey, Type extends ReqTypeKey<Api>> = GetPropsData<PropType<PropType<RequestBase, Api>, Type>>;
 // Main search response type getter
-export type GetSearchResponse<Api extends SearchApiKey, Type extends SearchTypeKey<Api>> = GetResponseData<PropType<PropType<SearchBase, Api>, Type>>;
+export type GetReqResponse<Api extends ReqApiKey, Type extends ReqTypeKey<Api>> = GetResponseData<PropType<PropType<RequestBase, Api>, Type>>;
 
 /* END OF 'gbif_params.ts' FILE */

@@ -1,9 +1,10 @@
 const resolve = require("@rollup/plugin-node-resolve");
 const commonjs = require('@rollup/plugin-commonjs');
-const typescript = require('@rollup/plugin-typescript');
+const typescript = require('rollup-plugin-typescript2');
 const external = require('rollup-plugin-peer-deps-external');
 const babel = require("@rollup/plugin-babel");
 const replace = require("@rollup/plugin-replace");
+
 
 module.exports = [
   {
@@ -63,7 +64,8 @@ module.exports = [
         presets: ["react", "env", "stage-0"]
       }),
       commonjs(),
-      typescript({ tsconfig: './tsconfig.json' }),
+      typescript({
+        tsconfig: './tsconfig.json' }),
     ],
   },
 ];

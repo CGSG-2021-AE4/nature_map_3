@@ -15,7 +15,7 @@
  */
 
 import React from "react";
-import { ValueProps, getInputElement, PossibleFormValueType, getInputElementValue } from "./support";
+import { ValueProps,  } from "./support";
 
 /* Log type enum */
 export enum LogType {
@@ -43,7 +43,7 @@ export interface LogMsg {
 export interface FormProps<ValuesObject> {
   name: string;
   //return_type;
-  valuesProps: { [name: string]: ValueProps };
+  valuesProps: { [name: string]: React.PropsWithRef<ValueProps> };
   inValues: { [name: string]: any };
   onCloseCallBack: ( newValues: ValuesObject ) => void;
 } /* End of 'FormProps' function */
@@ -53,7 +53,6 @@ interface FormComponentProps<ValuesObject> {
   formProps: FormProps<ValuesObject>;
   onCloseCallBack: ( isApplied: boolean ) => void;
 } /* End of 'FormComponentProps' function */
-
 
 function FormComponent<ValuesObject>( props: React.PropsWithRef<FormComponentProps<ValuesObject>> ) {
   const valuesRefs: Array<React.RefObject<HTMLInputElement>> = [];
@@ -83,7 +82,7 @@ function FormComponent<ValuesObject>( props: React.PropsWithRef<FormComponentPro
             padding: "0.1em",
           }}>
             <p style={{ padding: 0, marginRight: '1em' }}>{props.formProps.valuesProps[optionKey].name}</p>
-            {getInputElement(props.formProps.valuesProps[optionKey], props.formProps.inValues[optionKey])}
+            {/*getInputElement(props.formProps.valuesProps[optionKey], props.formProps.inValues[optionKey])*/}
           </div>);
         })
         // TODO
@@ -150,10 +149,10 @@ export class OverlayComponent extends React.Component<React.PropsWithRef<Overlay
           const outValues = this.state.formProps.inValues;
 
           Object.keys(outValues).map(( optionKey: string )=>{
-            const newValue = getInputElementValue(this.state.formProps.valuesProps[optionKey]);
-
-            // if (newValue) ???
-            outValues[optionKey] = newValue;
+            // const newValue = getInputElementValue(this.state.formProps.valuesProps[optionKey]);
+// 
+            // // if (newValue) ???
+            // outValues[optionKey] = newValue;
           });
 
           this.state.formProps.onCloseCallBack(outValues);

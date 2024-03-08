@@ -32,7 +32,7 @@ export interface PushButtonProps {
   name?: string;
   value?: boolean;
   valueType?: ButtonNameType;
-  onChange?: ( newValue: boolean)=>void;
+  onChange?: ( newValue: boolean )=>void;
 } /* End of 'PushButtonProps' interface */
 
 /* Push button React state interface */
@@ -137,81 +137,140 @@ export interface OptionSetProps {
 
 /**** Input elements functionality ****/
 
-/* Possible value type */
-export type PossibleFormValueType = number | string | boolean;
-
 /* Value type */
-export enum ValueType {
-  eString = 'eString', // String value
-  eBool = 'eBool',     // Boolean value
-  eNumber = 'eNumber', // Number value
-} /* End of 'ValueType' enum */
+export type ValueType =
+  'STRING' |
+  'BOOL' |
+  'NUMBER' |
+  'TOGGLE'
+; // End of 'ValueType' constraint
+
+// Different values arguments
+// For button
+interface ValueButtonArgs {
+  type?: ButtonNameType;
+} // End of 'ValueButtonArgs' interface
+// For toggle menu
+interface ValueToggleArgs {
+  options: Array<string>;
+} // End of 'ValueButtonArgs' interface
 
 /* Value interface */
 export interface ValueProps {
   name?: string;
   type: ValueType;
-  ref?: React.RefObject<any>; // SHIT but for now ok
-  arguments?: { [name: string]: any } // Other arguments
-                                      // BUTTON:
-                                      //   type?: ButtonNameType
+  defValue?: any;
+  arguments?: ValueButtonArgs | ValueToggleArgs;
+  onChange?: ( newValue: any )=>void;
+  ref?: React.RefObject<any>; // WTF TS???? why does not work
 } /* End of 'ValueProps' function */
 
-/* Get form value's input element JSX */
-export function getInputElement( valueProps: ValueProps, defaultValue?: PossibleFormValueType ): JSX.Element {
-  // Default value switch
-  let defValue;
-  switch (valueProps.type)
-  {
-    case ValueType.eString:
-      defValue = (defaultValue && typeof defaultValue != "string") ? "" : defaultValue;
-      break;
-    case ValueType.eBool:
-      defValue = (defaultValue && typeof defaultValue != "boolean") ? false : defaultValue;
-      break;
-    case ValueType.eNumber:
-      defValue =  (defaultValue && typeof defaultValue != "number") ? 0 : defaultValue;
-      break;
+export class Value extends React.Component<ValueProps, {}> {
+  valueElementRef: React.RefObject<any>;
+
+  // Get form value's input element JSX
+  getInputElement<DefaultValueT>( defValue?: any): JSX.Element {
+    // Default value switch
+    let defValueOut;
+    switch (this.props.type)
+    {
+      case 'STRING':
+        defValueOut = (defValue && typeof defValue == "string") ? defValue : "";
+        break;
+      case 'BOOL':
+        defValueOut = (defValue && typeof defValue == "boolean") ? defValue : false;
+        break;
+      case 'NUMBER':
+        defValueOut = (defValue && typeof defValue == "number") ? defValue : 0;
+        break;
+      case 'TOGGLE':
+        defValueOut = (defValue && typeof defValue == "string") ? defValue : 0;
+        break;
+    }
+
+    switch (this.props.type)
+    {
+      case 'STRING':
+        return (<input type="text" ref={this.valueElementRef} defaultValue={defValueOut} onChange={()=>{
+          if (this.props.onChange)
+            this.props.onChange(this.getValue());
+        }}/>);
+      case 'BOOL':
+        const args: ValueButtonArgs = this.props.arguments as ValueButtonArgs;
+
+        return (<PushButton ref={this.valueElementRef} value={defValueOut} valueType={(args != undefined && args.type != undefined) ? args.type : ButtonNameType.eYesNo } onChange={()=>{
+          if (this.props.onChange)
+            this.props.onChange(this.getValue());
+        }}/>); // WTF
+      case 'NUMBER':
+        return (<input type="number" ref={this.valueElementRef} defaultValue={defValueOut} onChange={()=>{
+          if (this.props.onChange)
+            this.props.onChange(this.getValue());
+        }}/>);
+      case 'TOGGLE':
+        if (!this.props.arguments)
+          return (<></>);
+        return (
+          <select ref={this.valueElementRef} defaultValue={defValueOut} onChange={()=>{
+            if (this.props.onChange)
+              this.props.onChange(this.getValue());
+          }}>
+            {this.props.arguments && (this.props.arguments as ValueToggleArgs).options.map((o)=>{
+              return (<option value={o}>{o}</option>);
+            })}
+          </select>
+        );
+    }
+  } /* End of 'getInputElement' function */
+
+  // Constructor function
+  constructor( props: ValueProps ) {
+    super(props);
+
+    this.valueElementRef = React.createRef();
   }
   
-  switch (valueProps.type)
-  {
-    case ValueType.eString:
-      return (<input type="text" ref={valueProps.ref} defaultValue={defValue}/>);
-    case ValueType.eBool:
-      return (<PushButton ref={valueProps.ref} value={defValue} valueType={(valueProps.arguments != undefined && valueProps.arguments.type != undefined) ? valueProps.arguments.type : ButtonNameType.eYesNo }/>); // WTF
-    case ValueType.eNumber:
-      return (<input type="number" ref={valueProps.ref} defaultValue={defValue}/>);
-  }
-} /* End of 'getInputElement' function */
-
-/* Get HTML element value function */
-export function getInputElementValue<ValueT>( valueProps: ValueProps ): ValueT {
-  if (valueProps && valueProps.ref.current)
-  {
-    switch (valueProps.type)
+  // Get value function
+  getValue<ValueT>(): ValueT {
+    if (this.valueElementRef.current)
     {
-    case ValueType.eString:
-      return String(valueProps.ref.current.value) as ValueT;
-    case ValueType.eBool:
-      return Boolean(valueProps.ref.current.getValue()) as ValueT;
-    case ValueType.eNumber:
-      return Number(valueProps.ref.current.value) as ValueT;
+      switch (this.props.type)
+      {
+      case 'STRING':
+      case 'TOGGLE':
+        return String(this.valueElementRef.current.value) as ValueT;
+      case 'BOOL':
+        return Boolean(this.valueElementRef.current.getValue()) as ValueT;
+      case 'NUMBER':
+        return Number(this.valueElementRef.current.value) as ValueT;
+      }
     }
+    return undefined;
+  } /* End of 'getInputElementValue' function */
+
+  render() {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <p>{this.props.name}</p>
+        {this.getInputElement()}
+      </div>
+    );
   }
-  return undefined;
-} /* End of 'getInputElementValue' function */
+}; // End of 'Value' class
 
 /* Option state interface */
-interface OptionState {
-  nameElement: { props: ValueProps; defValue?: any };
-  valueElement: { props: ValueProps; defValue?: any };
-} /* End of 'OptionState' interface */
+interface Option {
+  name: string;
+  type: ValueType;
+  defValue?: any;
+  ref?: React.RefObject<any>;
+} /* End of 'Option' interface */
 
 /* Option set React state interface */
 interface OptionSetState {
-  options: Array<OptionState>;
+  options: Array<Option>;
 }/* End of 'OptionSetState' interface */
+
 
 /* Link search main component class */
 export class OptionSet extends React.Component<React.PropsWithRef<OptionSetProps>, OptionSetState> {
@@ -228,44 +287,53 @@ export class OptionSet extends React.Component<React.PropsWithRef<OptionSetProps
       this.props.onLoad(this);
   } /* End of 'constructor' function */
 
-  /* Values getter function */
+  // Values getter function
   getValues<ValueT>(): { [name: string]: ValueT } {
     var outValues: { [name: string]: ValueT } = {};
 
-    this.state.options.map(( option: OptionState ) => {
-      outValues[getInputElementValue<string>(option.nameElement.props)] = getInputElementValue<ValueT>(option.valueElement.props);
+    this.state.options.map(( option: Option ) => {
+      if (option.ref.current)
+      outValues[option.name] = option.ref.current.getValue();
     });
     return outValues;
   } /* End of 'getValues' function */
 
-  /* Add option function (mostly for testing ) */
-  AddOption( name: string, value: any ) {
+  // Add option function (mostly for testing )
+  AddOption( name: string, valueType: ValueType, defValue?: any ) {
     this.state.options.push({
-      nameElement: { props: { type: ValueType.eString, ref: React.createRef() }, defValue: name },
-      valueElement: { props: { type: this.props.optionType, ref: React.createRef() }, defValue: value }
+      name: name,
+      type: valueType,
+      defValue: defValue,
+      ref: React.createRef(),
     });
+    this.setState({ options: this.state.options });
   } /* End of 'AddOption' function */
+
+  // Add several options function
+  AddOptions( newOptions: Array<{ name: string, valueType: ValueType, defValue?: any }> ) {
+    newOptions.map(( o )=>{ this.AddOption(o.name, o.valueType, o.defValue); });
+  } // End of 'AddOptions' function
+
+  // Clear all options function
+  Clear() {
+    this.setState({ options: [] });
+  } // End of 'Clear' function
+
+  // Set options (clear and add) function
+  SetOptions( newOptions: Array<{ name: string, valueType: ValueType, defValue?: any }> ) {
+    this.Clear();
+    this.AddOptions(newOptions);
+  } // End of 'SetOptions' function
 
   /* React render function */
   render() {
     return (
       <div>
         {
-          this.state.options.map(( option: OptionState )=>{
-            return (
-              <div>
-                 {getInputElement(option.nameElement.props, option.nameElement.defValue)}
-                 {getInputElement(option.valueElement.props, option.valueElement.defValue)}
-              </div>);
+          this.state.options.map(( option: Option )=>{
+            return (<Value type={option.type} ref={option.ref} defValue={option.defValue}/>);
           })
         }
-        <ClickButton name="Add option" onClick={()=>{
-          this.state.options.push({
-            nameElement: { props: { type: ValueType.eString, ref: React.createRef() } },
-            valueElement: { props: { type: this.props.optionType, ref: React.createRef() } }
-          });
-          this.setState({ options: this.state.options });
-        }}/>
       </div>
     );
   } /* End of 'render' function */

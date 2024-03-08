@@ -15,7 +15,7 @@
  */
 
 import TileSource from "ol/source/Tile";
-import { SearchProps, SearchResponse, SearchApiKey, SearchTypeKey, GetSearchProps, GetSearchResponse } from "./gbif_params";
+import { ReqProps, ReqResponse, ReqApiKey, ReqTypeKey, GetReqProps, GetReqResponse } from "./gbif_params";
 import { OverlayInterface } from "./overlay";
 import { queryToStr } from "./query";
 
@@ -31,9 +31,9 @@ export class GbifSearch {
   props: GbifSearchProps;
   offset: Number;
   limit: Number;
-  api: SearchApiKey;
-  type: SearchTypeKey<SearchApiKey>;
-  searchProps: SearchProps;
+  api: ReqApiKey;
+  type: ReqTypeKey<ReqApiKey>;
+  searchProps: ReqProps;
   
   /* Constructor function */
   constructor( props: GbifSearchProps ) {
@@ -48,13 +48,13 @@ export class GbifSearch {
   } /* End of 'setLimit' function */
 
   /* First search request function */
-  search = async <Api extends SearchApiKey, Type extends SearchTypeKey<Api>>( api: Api, type: Type, props: GetSearchProps<Api, Type> ): Promise<GetSearchResponse<Api, Type>> => {
+  search = async <Api extends ReqApiKey, Type extends ReqTypeKey<Api>>( api: Api, type: Type, props: GetReqProps<Api, Type> ): Promise<GetReqResponse<Api, Type>> => {
     // Reset
     this.offset = 0;
 
     // Set new search props
     this.api = api;
-    this.type = type as SearchTypeKey<SearchApiKey>;
+    this.type = type as ReqTypeKey<ReqApiKey>;
     this.searchProps = props;
 
     console.log(this);
@@ -64,9 +64,9 @@ export class GbifSearch {
   } /* End of 'search' function */
 
   /* Continue search with the same params(already set), with right offset function */
-  continueSearch = async <Api extends SearchApiKey, Type extends SearchTypeKey<Api>>( api: Api, type: Type ): Promise<GetSearchResponse<Api, Type>> => {
+  continueSearch = async <Api extends ReqApiKey, Type extends ReqTypeKey<Api>>( api: Api, type: Type ): Promise<GetReqResponse<Api, Type>> => {
     const queryStr = queryToStr(this.searchProps.query);
-    return (await fetch(`https://api.gbif.org/v1/${api}/${this.searchProps.required.usageKey}/${String(type)}${queryStr.length > 0 ? "?" : ""}${queryStr}`)).json().then(( data: any )=>{ return data as GetSearchResponse<Api, Type>; });
+    return (await fetch(`https://api.gbif.org/v1/${api}/${this.searchProps.required.usageKey}/${String(type)}${queryStr.length > 0 ? "?" : ""}${queryStr}`)).json().then(( data: any )=>{ return data as GetReqResponse<Api, Type>; });
   } /* End of 'continueSearch' function */
   
 }; /* End of 'GbifSearch' class */

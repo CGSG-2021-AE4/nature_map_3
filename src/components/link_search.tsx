@@ -15,12 +15,13 @@
  */
 
 import React from "react";
-import { ClickButton, OptionSet, ValueType, renderComponent } from "./support";
+
+import { ClickButton, OptionSet, Value, ValueType, renderComponent } from "./support";
 import { MapInterface } from "../map";
 import { LogType, OverlayInterface } from "../overlay";
 import { queryToURL } from "../query";
 import { GbifSearch } from "../gbif";
-import { GetSearchResponse } from "../gbif_params";
+import { GetReqProps, GetReqResponse, ReqApiKey, ReqProps, ReqTypeKey, RequestBase, requestBaseDefault } from "../gbif_params";
 
 /* Link search React props interface */
 export interface LinkSearchProps {
@@ -35,6 +36,10 @@ interface SearchPrefs {
 
 /* Link search React state interface */
 interface LinkSearchState {
+  api: ReqApiKey;
+  type: ReqTypeKey<ReqApiKey>;
+  reqParamRefs: Array<React.RefObject<Value>>;
+  reqParamJSX: Array<JSX.Element>;
   optionSetRef: React.RefObject<OptionSet>;
 }/* End of 'OptionSetState' interface */
 
@@ -42,6 +47,7 @@ interface LinkSearchState {
 export class LinkSearch extends React.Component<LinkSearchProps, LinkSearchState> {
   searchPrefs: SearchPrefs;
   gbifSearch: GbifSearch;
+  APIValueRef: React.RefObject<Value>;
 
   /* Constructor function */
   constructor( props: LinkSearchProps ) {
@@ -49,11 +55,41 @@ export class LinkSearch extends React.Component<LinkSearchProps, LinkSearchState
 
     this.state = {
       optionSetRef: React.createRef(),
+      api: Object.keys(requestBaseDefault)[0] as ReqApiKey,
+      type: Object.keys(requestBaseDefault[Object.keys(requestBaseDefault)[0] as ReqApiKey])[0] as ReqTypeKey<ReqApiKey>,
+      reqParamRefs: [],
+      reqParamJSX: [],
     };
     this.searchPrefs = { url: "https://api.gbif.org/v1/species/search" };
     this.gbifSearch = new GbifSearch({ overlay: props.overlay });
   } /* End of 'constructor' function */
 
+  // Get request value function
+  updateReqParams(): void {
+    var reqParamRefs: Array<React.RefObject<Value>> = [];
+    var reqParamJSX: Array<JSX.Element> = [];
+  
+    console.log(requestBaseDefault[this.state.api][this.state.type]);
+    Object.keys(requestBaseDefault[this.state.api][this.state.type].required).map(( p )=>{
+      const ref = React.createRef<Value>();
+
+      reqParamJSX.push(<Value name={p + " *"} type="STRING"/>);
+      reqParamRefs.push(ref);
+    });
+    Object.keys(requestBaseDefault[this.state.api][this.state.type].query).map(( p )=>{
+      const ref = React.createRef<Value>();
+
+      reqParamJSX.push(<Value name={p} type="STRING"/>);
+      reqParamRefs.push(ref);
+    });
+    this.setState({ reqParamJSX: reqParamJSX, reqParamRefs: reqParamRefs });
+  } // End of 'updateReqParams' function
+
+  // On mount React function
+  componentDidMount(): void {
+    this.updateReqParams();
+  }
+  
   /* React render function */
   render() {
     return (
@@ -67,24 +103,27 @@ export class LinkSearch extends React.Component<LinkSearchProps, LinkSearchState
               this.searchPrefs = newPrefs;
             },
             valuesProps: {
-              url: { name: "Base domain", type: ValueType.eString }
+              url: { name: "Base domain", type: 'STRING' }
             },
           });
         }}/>
-        <OptionSet ref={this.state.optionSetRef} optionType={ValueType.eString} onLoad={( os: OptionSet )=>{
-          // SOME SHIT
-
-          os.AddOption("q", "");
-          os.AddOption("rank", "KINGDOM");
-          os.AddOption("dataset_key", "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c");
-          os.AddOption("offset", "20");
-          os.AddOption("limit", "80");
+        <Value name="API:" type="TOGGLE" ref={this.APIValueRef} defValue={this.state.api} arguments={{ options: Object.keys(requestBaseDefault) }} onChange={( newValue: string )=>{
+          this.setState({ api: newValue as ReqApiKey });
         }}/>
+        <Value name="Type:" type="TOGGLE" ref={this.APIValueRef} defValue={this.state.type} arguments={{ options: Object.keys(requestBaseDefault[this.state.api]) }} onChange={( newValue: string )=>{
+          this.setState({ type: newValue as ReqTypeKey<ReqApiKey> }, ()=>{
+            console.log(this.state.api);
+            console.log(this.state.type);
+            this.updateReqParams();
+          });
+        }}/>
+        {this.state.reqParamJSX}
         <ClickButton name="Show on map"/>
         <ClickButton name="Test search" onClick={ async ()=> {
-          const data = await this.gbifSearch.search( "species", "name", { required: { usageKey: 5231190 }, query: { } } );
+          //const data = await this.gbifSearch.search( "species", "name", { required: { usageKey: 5231190 }, query: { } } );
+          Object.keys(requestBaseDefault).map(( key: ReqApiKey )=>{ console.log(key); });
 
-          console.log(data);
+          //console.log(data);
           //this.gbifSearch.search( "species", "name", {required: {}});
         }}/>
         <ClickButton name="Show link" onClick={ async ()=>{

@@ -24,6 +24,7 @@ import {Icon as OL_Icon, Style as OL_Style} from 'ol/style.js';
 import OL_Map from 'ol/Map.js';
 import OL_View from 'ol/View.js';
 
+
 /* My includes */
 import Vec2 from './math/vec2';
 import { QueryParams, queryToStr } from './query';

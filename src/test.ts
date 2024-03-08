@@ -50,15 +50,15 @@ export function init( map: MapInterface, overlay: OverlayInterface ): void {
       valuesProps: {
         str: {
           name: 'str',
-          type: FormValueType.eString,
+          type: 'STRING',
         },
         number: {
           name: 'number',
-          type: FormValueType.eNumber,
+          type: 'NUMBER',
         },
         bool: {
           name: 'bool',
-          type: FormValueType.eBool,
+          type: 'BOOL',
         },
       },
       inValues: values,
