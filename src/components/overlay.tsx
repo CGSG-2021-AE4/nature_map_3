@@ -15,7 +15,8 @@
  */
 
 import React from "react";
-import { ValueProps,  } from "./support";
+import { Contains, ValuePossibleTypes, ValueProps } from "./value";
+import { ValueSet, ValueSetPropsDefaults, ValueSetPropsValues } from "./value_set";
 
 /* Log type enum */
 export enum LogType {
@@ -26,7 +27,7 @@ export enum LogType {
 } /* End of 'LogType' enum */
 
 /* Log style for different message types value */
-const logStyleTable: { [type: string]: React.CSSProperties } = {
+const logStyleTable: Contains<React.CSSProperties> = {
   eMessage: { margin: '0.5em', border: '0.2em solid #a9a9a9', backgroundColor: 'rgb(209 209 209 / 71%)' },
   eDebug: { margin: '0.5em', border: '0.2em solid #3737c8', backgroundColor: 'rgb(115 105 240 / 49%)' },
   eWarning: { margin: '0.5em', border: '0.2em solid #fed01b', backgroundColor: 'rgb(255 255 154 / 67%)' },
@@ -40,27 +41,22 @@ export interface LogMsg {
 } /* End of 'LogMsg' interface */
 
 /* Form props interface */
-export interface FormProps<ValuesObject> {
+export interface FormProps<K> {
   name: string;
-  //return_type;
-  valuesProps: { [name: string]: React.PropsWithRef<ValueProps> };
-  inValues: { [name: string]: any };
-  onCloseCallBack: ( newValues: ValuesObject ) => void;
+  values: ValueSetPropsValues<K>;
+  defaults?: ValueSetPropsDefaults<K>;
+  onCloseCallBack: ( newValues: K ) => void;
 } /* End of 'FormProps' function */
 
 /* Form component props interface */
 interface FormComponentProps<ValuesObject> {
-  formProps: FormProps<ValuesObject>;
-  onCloseCallBack: ( isApplied: boolean ) => void;
+  formProps: FormProps<any>;
+  onCloseCallBack: ( isApplied: boolean, outValues?: Contains<ValuePossibleTypes> ) => void;
 } /* End of 'FormComponentProps' function */
 
 function FormComponent<ValuesObject>( props: React.PropsWithRef<FormComponentProps<ValuesObject>> ) {
-  const valuesRefs: Array<React.RefObject<HTMLInputElement>> = [];
+  const valueSetRef: React.RefObject<ValueSet> = React.createRef();
 
-  // Just create refs
-  for (let i = Object.keys(props.formProps.valuesProps).length; i > 0; i--)
-    valuesRefs.push(React.createRef());
-  
   // Render form
   return (<div style={{
     backgroundColor: 'white',
@@ -68,33 +64,14 @@ function FormComponent<ValuesObject>( props: React.PropsWithRef<FormComponentPro
     padding: '0.3em'
   }}>
     <h2>{props.formProps.name}</h2>
-    <div>
-      {
-        Object.keys(props.formProps.valuesProps).map(( optionKey: string )=>{
-          props.formProps.valuesProps[optionKey].ref = React.createRef<HTMLInputElement>();
-
-          return (<div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            border: "0.1em solid black",
-            margin: "0.1em",
-            padding: "0.1em",
-          }}>
-            <p style={{ padding: 0, marginRight: '1em' }}>{props.formProps.valuesProps[optionKey].name}</p>
-            {/*getInputElement(props.formProps.valuesProps[optionKey], props.formProps.inValues[optionKey])*/}
-          </div>);
-        })
-        // TODO
-      }
-    </div>
+    <ValueSet ref={valueSetRef} values={props.formProps.values} defaults={props.formProps.defaults}/>
     <div style={{
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'end',
     }}>
-      <input type="button" value="Save" onClick={()=>{props.onCloseCallBack(true); }}/>
-      <input type="button" value="Cancel" onClick={()=>{props.onCloseCallBack(false); }}/>
+      <input type="button" value="Save" onClick={()=>{ props.onCloseCallBack(true, valueSetRef.current.getValues()); }}/>
+      <input type="button" value="Cancel" onClick={()=>{ props.onCloseCallBack(false); }}/>
     </div>
   </div>);
 } /* End of 'formComponent' function */
@@ -112,6 +89,7 @@ interface OverlayState {
 
 /* Overlay component class */
 export class OverlayComponent extends React.Component<React.PropsWithRef<OverlayProps>, OverlayState> {
+  formRef: React.RefObject<any>;
 
   /* Constructor function */
   constructor( props: React.PropsWithRef<OverlayProps> ) {
@@ -122,6 +100,7 @@ export class OverlayComponent extends React.Component<React.PropsWithRef<Overlay
       formProps: undefined,
       logStack: [],
     };
+    this.formRef = React.createRef();
   } /* End of 'constructor' funciton */
 
   /* React render function */
@@ -139,21 +118,12 @@ export class OverlayComponent extends React.Component<React.PropsWithRef<Overlay
         justifyContent: 'center',
         alignItems: 'center',
       }}>
-        <FormComponent formProps={this.state.formProps} onCloseCallBack={( isApplied: boolean )=>{
+        <FormComponent formProps={this.state.formProps} onCloseCallBack={( isApplied: boolean, outValues?: Contains<ValuePossibleTypes> )=>{
           if (!isApplied)
           {
             this.setState({ formProps: undefined });
             return;
           }
-          
-          const outValues = this.state.formProps.inValues;
-
-          Object.keys(outValues).map(( optionKey: string )=>{
-            // const newValue = getInputElementValue(this.state.formProps.valuesProps[optionKey]);
-// 
-            // // if (newValue) ???
-            // outValues[optionKey] = newValue;
-          });
 
           this.state.formProps.onCloseCallBack(outValues);
           this.setState({ formProps: undefined });
@@ -191,7 +161,7 @@ export class OverlayComponent extends React.Component<React.PropsWithRef<Overlay
   } /* End of 'log' function */
 
   /* Show form function */
-  showForm<ValuesType>( props: FormProps<ValuesType> ): void {
+  showForm<K>( props: FormProps<K> ): void {
     this.setState({ formProps: props });
   } /* End of 'showForm' function */
 

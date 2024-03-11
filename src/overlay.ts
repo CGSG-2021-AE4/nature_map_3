@@ -16,7 +16,8 @@
 
 import React from "react";
 import { OverlayComponent, OverlayProps, LogType, FormProps } from "./components/overlay";
-import { renderComponent, ButtonNameType, ValueType } from "./components/support";
+import { renderComponent, ButtonNameType } from "./components/support";
+import { ValueType } from "./components/value";
 
 
 export { OverlayProps, LogType, FormProps, ValueType as FormValueType, ButtonNameType };
@@ -24,7 +25,7 @@ export { OverlayProps, LogType, FormProps, ValueType as FormValueType, ButtonNam
 /* Overlay interface that other classes would get */
 export interface OverlayInterface {
   log: ( str: string, type?: LogType )=>void;
-  showForm: <ValuesType>( props: FormProps<ValuesType> )=> void;
+  showForm: <K>( props: FormProps<K> )=> void;
 } /* End of 'OverlayInterface'
 
 /* Overlay main class */
@@ -48,7 +49,7 @@ export class Overlay {
   } /* End of 'log' function */
 
   /* Show form function */
-  showForm = <ValuesType>( props: FormProps<ValuesType> ): void => { // TODO make it arrow function
+  showForm = <K>( props: FormProps<K> ): void => { // TODO make it arrow function
     if (this.ref.current)
       this.ref.current.showForm(props);
     else

@@ -34,7 +34,7 @@ export function init( map: MapInterface, overlay: OverlayInterface ): void {
   };
   
   interface FormValues {
-    str: String;
+    str: string;
     number: number;
     bool: boolean;
   };
@@ -47,7 +47,7 @@ export function init( map: MapInterface, overlay: OverlayInterface ): void {
   document.getElementById('show-form-button').onclick = ()=>{
     overlay.showForm<FormValues>({
       name: 'test',
-      valuesProps: {
+      values: {
         str: {
           name: 'str',
           type: 'STRING',
@@ -61,7 +61,7 @@ export function init( map: MapInterface, overlay: OverlayInterface ): void {
           type: 'BOOL',
         },
       },
-      inValues: values,
+      defaults: values,
       onCloseCallBack: ( newValues: FormValues )=>{
         console.log('NEW VALUES:');
         console.log(newValues);
